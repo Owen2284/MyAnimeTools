@@ -74,6 +74,7 @@ COMMANDLIST = [
 	("roulette", "Select a random anime.", None, True),
 	#("tournament", "Mode allowing you to determine your favourite anime.", None, True),
 	#("stats", "", None, True),
+	#("gantt", "", None, True),
 	#("options", "", None, False),
 	("quit", "Closes the program.", None, False)
 ]
