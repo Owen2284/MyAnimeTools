@@ -50,6 +50,7 @@ class Anime:
 		self.seriesSynonymsStr = inSynonymsStr
 		self.seriesSynonymsList = self.synonymsStringToList(inSynonymsStr)
 		self.seriesTypeNum = inSeriesTypeNum
+		self.seriesTypeStr = ""
 		self.seriesEpisodes = inSeriesEpisodes
 		self.seriesStatusNum = inSeriesStatusNum
 		self.seriesStatusStr = self.statusNumberToString(inSeriesStatusNum)
@@ -104,6 +105,18 @@ class Anime:
 	def printAnimeShort(self):
 		print(" " + self.name)
 
+	def printAnimeDetailed(self):
+		print(" Title: " + self.name)
+		print(" ID: " + self.aID)
+		print(" Link: " + self.link)
+		print(" Synonyms: " + self.seriesSynonymsStr)
+		print("")
+		print(" Type: " + self.seriesTypeStr)
+		print(" Number of episodes: " + str(self.seriesEpisodes))
+		print(" Status: " + self.seriesStatusStr)
+		print(" Airdates: " + self.seriesStartDate + " to " + self.seriesEndDate)
+		print("")
+
 
 class AnimeList:
 
@@ -122,11 +135,13 @@ class AnimeList:
 		for key in subAnime:
 			self.anime[key].printAnimeShort()
 
-	def allAnimeString(self):
-		ret = ""
-		for item in self.anime:
-			ret += item + ", "
-		return ret[:len(ret) - 2]
+	def getAnimeByName(self, inName):
+		for key in self.anime:
+			currentAnime = self.anime[key]
+			for currentName in currentAnime.getAllNames():
+				if currentName == inName:
+					return currentAnime
+		return None
 
 	def getAnimeByCategory(self, inCategory):
 		newAnime = {}
@@ -136,6 +151,17 @@ class AnimeList:
 				newAnime[key] = currentAnime
 		return newAnime
 
+	def getAnimeCount():
+		return len(anime)
+
+	def isEmpty():
+		return getAnimeCount() == 0;
+
+	def merge(self, target):
+		self.anime = target.anime
+
+	def clear(self):
+		self.anime = {}
 
 class User:
 
@@ -167,6 +193,17 @@ class User:
 
 		self.daysSpentWatching = inDays
 
+	def merge(self, target):
+		self.userID = target.userID
+		self.userName = target.userName
+		self.countWatching = target.countWatching
+		self.countCompleted = target.countCompleted
+		self.countOnHold = target.countOnHold
+		self.countDropped = target.countDropped
+		self.countPlanToWatch = target.countPlanToWatch
+		self.countAll = target.countAll
+		self.daysSpentWatching = target.daysSpentWatching
+
 	def printUser(self):
 		print("Username: " + self.userName + "")
 		print(str(self.countAll) + " anime found:")
@@ -175,3 +212,17 @@ class User:
 		print("- On Hold: " + str(self.countOnHold))
 		print("- Dropped: " + str(self.countDropped))
 		print("- Plan to Watch: " + str(self.countPlanToWatch))
+
+	def isLoaded(self):
+		return (self.userName != "" and self.userID != "")
+
+	def clear(self):
+		self.userID = ""
+		self.userName = ""
+		self.countWatching = 0
+		self.countCompleted = 0
+		self.countOnHold = 0
+		self.countDropped = 0
+		self.countPlanToWatch = 0
+		self.countAll = 0
+		self.daysSpentWatching = 0.0

@@ -6,9 +6,6 @@ import xml.etree.ElementTree as ET
 from objects import *
 from actions import *
 
-PREFIX = "http://myanimelist.net/malappinfo.php?u="
-SUFFIX = "&status=all&type=anime"
-
 ANIMESTATUS = {
 	0:"all",
 	1:"currently watching",
@@ -21,6 +18,12 @@ ANIMESTATUS = {
 def printBreak():
 	print("-----")
 
+def newUser(user, anime):
+	outData = getUser()
+	if (outData[0] is not None):
+		user.merge(outData[0])
+		anime.merge(outData[1])
+
 def getUser():
 	username = input("Enter the name of the user to retrieve: ").lower()
 	print("Contacting MAL...")
@@ -30,13 +33,13 @@ def getUser():
 	else:
 		print("User " + data[0].userName + " loaded in.")
 		printBreak()
-		printUser(data[0])
+		printUser(data[0], data[1])
 	return data
 
 def initUser(inUser):
 
-	response = requests.get(PREFIX + inUser + SUFFIX)
-	rootNode = ET.fromstring(response.text.encode("ascii", "ignore"))
+	#rootNode = constructXMLTree("mal", "http://myanimelist.net/malappinfo.php?u=" + inUser + "&status=all&type=anime")
+	rootNode = constructXMLTree("kuristina", "https://kuristina.herokuapp.com/anime/" + inUser + ".xml")
 	
 	userObj = None
 	animeObj = None
@@ -90,26 +93,34 @@ def initUser(inUser):
 	else:
 		return (None, None, 0)
 
-def printUser(inUser):
-	if inUser is None:
-		print("No user stored. Use the \"new\" command to store a user.")
-	else:
-		inUser.printUser()
+def constructXMLTree(type, url):
+	response = requests.get(url)
+	rawResponse = response.text.encode("ascii", "ignore")
+	rootNode = ET.fromstring(rawResponse)
+	return rootNode
 
-def search(inAnime):
+def printUser(user, anime):
+	user.printUser()
+
+def clearUser(user, anime):
+	user.clear()
+	anime.clear()
+	print("User data cleared.")
+
+def search(user, anime):
 
 	searchTerm = input("Please enter a search term: ").lower()
 	printBreak()
 	subAnime = {}
 	added = False
 
-	for item in inAnime.anime:
+	for item in anime.anime:
 		added = False
-		theNames = inAnime.anime[item].getAllNames()
+		theNames = anime.anime[item].getAllNames()
 
 		for anyName in theNames:
 			if (added == False) and (searchTerm in anyName.lower()):
-				subAnime[item] = inAnime.anime[item]
+				subAnime[item] = anime.anime[item]
 				added = True
 
 	searchSize = len(subAnime)
@@ -122,25 +133,20 @@ def search(inAnime):
 	else:
 		print("There were no anime found with that string fragment in them.")
 
-def detail(inAnime):
+def detail(user, anime):
 
-	print("Anime that can be selected:")
-	print(allAnimeString(inAnime))
-	category = input("Please enter the anime to select: ").lower()
+	detailName = input("Please enter the anime to select: ").lower()
 	printBreak()
-	subAnime = {}
-	if category == "all":
-		subAnime = inAnime.anime
-	else:
-		subAnime = inAnime.getAnimeByCategory(category)
-	searchSize = len(subAnime)
-	if searchSize > 0:
-		print("The category contains " + str(searchSize) + " anime:")
-		inAnime.printList(subAnime)
-	else:
-		print("The selected category has no anime.")
 
-def showList(inAnime):
+	detailResult = anime.getAnimeByCategory(detailName)
+
+	if detailResult is not None:
+		print("Detailed info for:")
+		detailedResult.
+	else:
+		print("No matching anime. Consider using the \"list\" function to see exact names.")
+
+def showList(user, anime):
 
 	print("Categories for the list:")
 	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
@@ -149,19 +155,19 @@ def showList(inAnime):
 	if statusStringToNumber(category) >= 0:
 		subAnime = {}
 		if category == "all":
-			subAnime = inAnime.anime
+			subAnime = anime.anime
 		else:
-			subAnime = inAnime.getAnimeByCategory(category)
+			subAnime = anime.getAnimeByCategory(category)
 		listSize = len(subAnime)
 		if listSize > 0:
 			print("The category contains " + str(listSize) + " anime:")
-			inAnime.printList(subAnime)
+			anime.printList(subAnime)
 		else:
 			print("The selected category has no anime.")
 	else:
 		print("No such category.")
 
-def roulette(inAnime):
+def roulette(user, anime):
 
 	print("Categories for the roulette:")
 	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
@@ -170,9 +176,9 @@ def roulette(inAnime):
 	if statusStringToNumber(category) >= 0:
 		subAnime = {}
 		if category == "all":
-			subAnime = inAnime.anime
+			subAnime = anime.anime
 		else:
-			subAnime = inAnime.getAnimeByCategory(category)
+			subAnime = anime.getAnimeByCategory(category)
 		rouletteSize = len(subAnime)
 		if rouletteSize > 0:
 			rouletteChoices = list(subAnime.keys())
@@ -183,6 +189,9 @@ def roulette(inAnime):
 			print("The selected category has no anime.")
 	else:
 		print("No such category.")
+
+def quitter(user, anime):
+	pass
 
 def statusNumberToString(n):
 	for key in ANIMESTATUS:
@@ -195,3 +204,11 @@ def statusStringToNumber(s):
 		if ANIMESTATUS[key] == s:
 			return key
 	return -1
+
+actionNew = newUser
+actionUser = printUser
+actionClear = clearUser
+actionList = showList
+actionSearch = search
+actionRoulette = roulette
+actionQuit = quitter
