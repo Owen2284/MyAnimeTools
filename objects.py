@@ -143,6 +143,16 @@ class AnimeList:
 					return currentAnime
 		return None
 
+	def getAnimeByPartName(self, inPart):
+		for item in anime:
+			added = False
+			theNames = anime[item].getAllNames()
+
+			for anyName in theNames:
+				if (added == False) and (searchTerm in anyName.lower()):
+					subAnime[item] = anime.anime[item]
+					added = True
+
 	def getAnimeByCategory(self, inCategory):
 		newAnime = {}
 		for key in self.anime:

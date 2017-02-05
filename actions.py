@@ -114,14 +114,7 @@ def search(user, anime):
 	subAnime = {}
 	added = False
 
-	for item in anime.anime:
-		added = False
-		theNames = anime.anime[item].getAllNames()
-
-		for anyName in theNames:
-			if (added == False) and (searchTerm in anyName.lower()):
-				subAnime[item] = anime.anime[item]
-				added = True
+	
 
 	searchSize = len(subAnime)
 	if searchSize > 0:
