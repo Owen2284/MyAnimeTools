@@ -71,7 +71,7 @@ COMMANDLIST = [
 	("user", "Shows details about a user.", actionUser, True),
 	("list", "Lists all anime in a category.", actionList, True),
 	("search", "Displays all anime that match your search term.", actionSearch, True),
-	#("display", "Displays in depth details about the selected anime.", None, True),
+	("display", "Displays in depth details about the selected anime.", actionDisplay, True),
 	("roulette", "Select a random anime.", actionRoulette, True),
 	#("tournament", "Mode allowing you to determine your favourite anime.", None, True),
 	#("stats", "", None, True),

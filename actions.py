@@ -114,7 +114,7 @@ def search(user, anime):
 	subAnime = {}
 	added = False
 
-	
+	subAnime = anime.getAnimeByPartName(searchTerm)
 
 	searchSize = len(subAnime)
 	if searchSize > 0:
@@ -131,11 +131,10 @@ def detail(user, anime):
 	detailName = input("Please enter the anime to select: ").lower()
 	printBreak()
 
-	detailResult = anime.getAnimeByCategory(detailName)
-
+	detailResult = anime.getAnimeByName(detailName)
+	
 	if detailResult is not None:
-		print("Detailed info for:")
-		detailedResult.
+		detailResult.printAnimeDetailed()
 	else:
 		print("No matching anime. Consider using the \"list\" function to see exact names.")
 
@@ -203,5 +202,6 @@ actionUser = printUser
 actionClear = clearUser
 actionList = showList
 actionSearch = search
+actionDisplay = detail
 actionRoulette = roulette
 actionQuit = quitter

@@ -106,16 +106,24 @@ class Anime:
 		print(" " + self.name)
 
 	def printAnimeDetailed(self):
+		print("General info:")
 		print(" Title: " + self.name)
 		print(" ID: " + self.aID)
 		print(" Link: " + self.link)
 		print(" Synonyms: " + self.seriesSynonymsStr)
-		print("")
 		print(" Type: " + self.seriesTypeStr)
 		print(" Number of episodes: " + str(self.seriesEpisodes))
 		print(" Status: " + self.seriesStatusStr)
 		print(" Airdates: " + self.seriesStartDate + " to " + self.seriesEndDate)
-		print("")
+		print("User info:")
+		print(" User status: " + self.userStatusStr)
+		print(" User score: " + str(self.userScore) + " \ 10")		
+		print(" Number of episodes watched: " + str(self.userWatchedEps) + " \ " + str(self.seriesEpisodes))
+		print(" Watch dates: From " + self.userStartDate + " to " + self.userEndDate)
+		print(" Times Rewatched: " + str(self.userRewatching))
+		print(" Rewatched to episode: " + str(self.userRewatchingEp))
+		print(" User Tags: " + self.userTags)
+
 
 
 class AnimeList:
@@ -139,19 +147,20 @@ class AnimeList:
 		for key in self.anime:
 			currentAnime = self.anime[key]
 			for currentName in currentAnime.getAllNames():
-				if currentName == inName:
+				if currentName.lower() == inName.lower():
 					return currentAnime
 		return None
 
 	def getAnimeByPartName(self, inPart):
-		for item in anime:
+		returnAnime = {}
+		for key in self.anime:
 			added = False
-			theNames = anime[item].getAllNames()
-
-			for anyName in theNames:
-				if (added == False) and (searchTerm in anyName.lower()):
-					subAnime[item] = anime.anime[item]
+			currentAnime = self.anime[key]
+			for anyName in currentAnime.getAllNames():
+				if (added == False) and (inPart in anyName.lower()):
+					returnAnime[key] = currentAnime
 					added = True
+		return returnAnime
 
 	def getAnimeByCategory(self, inCategory):
 		newAnime = {}
@@ -172,6 +181,8 @@ class AnimeList:
 
 	def clear(self):
 		self.anime = {}
+
+
 
 class User:
 
