@@ -1,3 +1,5 @@
+import random
+
 class Anime:
 
 	# Fields
@@ -27,7 +29,7 @@ class Anime:
 	userLastUpdatedTimestamp = -1
 	userTags = ""
 
-	ANIMESTATUS = {
+	ANIMEUSERSTATUS = {
 		0:"All",
 		1:"Currently Watching",
 		2:"Completed",
@@ -72,14 +74,14 @@ class Anime:
 
 	# Methods used during construction.
 	def statusNumberToString(self, n):
-		for key in self.ANIMESTATUS:
+		for key in self.ANIMEUSERSTATUS:
 			if key == n:
-				return self.ANIMESTATUS[key]
+				return self.ANIMEUSERSTATUS[key]
 		return ""
 
 	def statusStringToNumber(self, s):
-		for key in self.ANIMESTATUS:
-			if self.ANIMESTATUS[key] == s:
+		for key in self.ANIMEUSERSTATUS:
+			if self.ANIMEUSERSTATUS[key] == s:
 				return key
 		return -1
 
@@ -163,12 +165,15 @@ class AnimeList:
 		return returnAnime
 
 	def getAnimeByCategory(self, inCategory):
-		newAnime = {}
-		for key in self.anime:
-			currentAnime = self.anime[key]
-			if currentAnime.userStatusStr.lower() == inCategory:
-				newAnime[key] = currentAnime
-		return newAnime
+		if inCategory == "all":
+			return list(self.anime)
+		else:
+			newAnime = {}
+			for key in self.anime:
+				currentAnime = self.anime[key]
+				if currentAnime.userStatusStr.lower() == inCategory:
+					newAnime[key] = currentAnime
+			return newAnime
 
 	def getAnimeCount():
 		return len(anime)
@@ -247,3 +252,192 @@ class User:
 		self.countPlanToWatch = 0
 		self.countAll = 0
 		self.daysSpentWatching = 0.0
+
+
+
+class TournamentRound:
+
+	# Fields
+	orderedAnime = None
+
+	# Methods
+	def __init__(self):
+		self.orderedAnime = []
+
+	def addStart(self, inAnime):
+		self.orderedAnime.insert(0, inAnime)
+
+	def addEnd(self, inAnime):
+		self.orderedAnime.append(inAnime)
+
+	def getAnimes(self):
+		return list(self.orderedAnime)
+
+	def getAnimesShuffled(self):
+		return random.shuffle(list(self.orderedAnime))
+
+	def numAnime(self):
+		return len(self.orderedAnime)
+
+	def numChoices(self):
+		return len(self.orderedAnime)-1
+
+	def toString(self):
+		for j in range(0, len(orderedAnime)):
+			animo = roundoAnimes[j]
+			returnedString += " " + str(j+1) + ". " + animo.name + "\n"
+
+
+
+class Tournament:
+
+	# Fields
+	rounds = []
+
+	# Methods
+	def __init__(self, inAnime, initRoundSize):
+		internalList = list(inAnime.values())
+		# Creates whole rounds.
+		while (len(internalList) >= initRoundSize):
+			# Creating round object.
+			newRound = TournamentRound()
+			# Adding the required number of anime to the round.
+			for i in range(0, initRoundSize):
+				newRound.addEnd(internalList.pop(random.randrange(len(internalList))))
+			# Adding the round to the main list.
+			self.rounds.append(newRound)
+		# Creates partial rounds.
+		if (len(internalList) > 0):
+			# Creating round object.
+			newRound = TournamentRound()
+			# Adding the remaining anime to the round.
+			for i in range(0, len(internalList)):
+				newRound.addEnd(internalList.pop(random.randrange(len(internalList))))
+			# Adding the round to the main list.
+			self.rounds.append(newRound)
+
+	def run(self, mergeNum):
+
+		# TODO: Store edges to determine preference of non neighbour anime? Like planning in AI module.
+
+		# Return if only one anime.
+		if (len(self.rounds) == 1 and len(self.rounds[0].getAnimes()) <= 1):
+			return
+		# Initialising stage variables.
+		stage = 1
+		maxStages = self.getMaxStages(mergeNum)
+		# Loop for all stages of the tournament
+		while(stage <= maxStages):
+
+			# Stage initialisation.
+			print("Stage " + str(stage) + " of " + str(maxStages))
+			completeRounds = []
+
+			# Loops through the rounds.
+			for roundu in self.rounds:
+				newRoundu = TournamentRound()
+				# Creates a queue for all of the anime in the current round.
+				animeQueue = list(roundu.getAnimes())
+				if (len(animeQueue) > 1):
+					# Creates a list to store the two choices.
+					currentQueue = [animeQueue.pop(), animeQueue.pop()]
+					# Looping through the anime to sort.
+					while (len(animeQueue) > 0 or len(currentQueue) == 2):
+						# Gets the user input.
+						print(" \"" + currentQueue[0].name + "\" or \"" + currentQueue[1].name + "\"?")
+						choice = input(" > ")
+						if (choice == "1" or choice == "2"):
+							# Stores the not chosen anime in the new round.
+							notChoice = int(choice) % 2
+							newRoundu.addStart(currentQueue[notChoice])
+							# Get the next anime.
+							if (len(animeQueue) > 0):
+								currentQueue[notChoice] = animeQueue.pop()
+							else:
+								currentQueue.remove(currentQueue[notChoice])
+						# TODO: Allow undoing.
+					# Put the final choice into the new round, and store the now completed round.
+					newRoundu.addStart(currentQueue.pop())
+				elif (len(animeQueue) == 1):
+					newRoundu.addStart(animeQueue.pop())
+				completeRounds.append(newRoundu)
+
+			# Performing the merge.
+			self.rounds = completeRounds
+			if (len(self.rounds) > 1):
+				self.rounds = self.merge(self.rounds, mergeNum)	
+
+			# Moving to the next stage.
+			stage += 1
+
+	def merge(self, inRounds, numToMerge):
+		mergedRounds = []
+		internalRounds = list(inRounds)
+		# Merging a full number of rounds.
+		while (len(internalRounds) >= numToMerge):
+			# Create round object.
+			newRound = TournamentRound()
+			# Gather all of the rounds and their lengths.
+			roundsToMerge = []
+			lengths = []
+			for i in range(0, numToMerge):
+				roundsToMerge.append(internalRounds.pop(random.randrange(len(internalRounds))).getAnimes())
+				lengths.append(len(roundsToMerge[i]))
+			# Determine the max length of the rounds.
+			maxAnimes = max(lengths)
+			# Adding the animes to the new round.
+			# TODO: Change merging order around, so that it maches flow of decision bubbling in the main algorithm
+			for i in range(0, maxAnimes):
+				for j in range(0, len(roundsToMerge)):
+					if (i < lengths[j]):
+						newRound.addEnd(roundsToMerge[j][i])
+			# Add the round to the merged rounds.
+			mergedRounds.append(newRound)
+		# Merging remaining rounds.
+		if (len(internalRounds) > 0):
+			# Create round object.
+			newRound = TournamentRound()
+			# Gather the reamining rounds and their lengths.
+			roundsToMerge = []
+			lengths = []
+			for i in range(0, len(internalRounds)): 
+				roundsToMerge.append(internalRounds[i].getAnimes())
+				lengths.append(len(roundsToMerge[i]))
+			# Determine the max length of the rounds.
+			maxAnimes = max(lengths)
+			# Adding the animes to the new round.
+			for i in range(0, maxAnimes):
+				for j in range(0, len(roundsToMerge)):
+					if (i < lengths[j]):
+						newRound.addEnd(roundsToMerge[j][i])
+			# Add the round to the merged rounds.
+			mergedRounds.append(newRound)
+		# Return the list of merged rounds.
+		return mergedRounds
+
+	def getMaxStages(self, mergeNum):
+		maxStages = 1
+		runningTotal = len(self.rounds)
+		while(runningTotal > 1):
+			if (runningTotal % mergeNum == 0):
+				runningTotal = runningTotal // 2
+			else:
+				runningTotal = (runningTotal // 2) + 1
+			maxStages += 1
+		return maxStages
+
+	def toString(self):
+		returnedString = ""
+		if (len(self.rounds) == 1):
+			roundoAnimes = self.rounds[0].getAnimes()
+			for j in range(0, len(roundoAnimes)):
+				animo = roundoAnimes[j]
+				returnedString += " " + str(j+1) + ". " + animo.name + "\n"
+		else:
+			for i in range(0, len(self.rounds)):
+				returnedString += "Round " + str(i+1) + ":\n"
+				roundoAnimes = self.rounds[i].getAnimes()
+				for j in range(0, len(roundoAnimes)):
+					animo = roundoAnimes[j]
+					returnedString += " " + str(j+1) + ". " + animo.name + "\n"
+		return returnedString

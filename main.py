@@ -72,14 +72,14 @@ COMMANDLIST = [
 	("list", "Lists all anime in a category.", actionList, True),
 	("search", "Displays all anime that match your search term.", actionSearch, True),
 	("display", "Displays in depth details about the selected anime.", actionDisplay, True),
-	("roulette", "Select a random anime.", actionRoulette, True),
-	#("tournament", "Mode allowing you to determine your favourite anime.", None, True),
-	#("stats", "", None, True),
-	#("gantt", "", None, True),
-	#("options", "", None, False),
+	("roulette", "Selects a random anime from your list.", actionRoulette, True),
+	("sorter", "Orders anime based on your preferences to determine your favourite shows.", actionTournament, True),
+	#("stats", "Generate various statistics about your anime watching habits.", None, True),
+	#("gantt", "Create a Gantt chart showing when you've been watching anime.", None, True),
+	#("options", "Toggle or change various setting of this app.", None, False),
 	("quit", "Closes the program.", actionQuit, False)
 ]
-VERSION = "v0.5"
+VERSION = "v0.6"
 
 # main program
 start()

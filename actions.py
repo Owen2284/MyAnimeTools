@@ -6,7 +6,7 @@ import xml.etree.ElementTree as ET
 from objects import *
 from actions import *
 
-ANIMESTATUS = {
+ANIMEUSERSTATUS = {
 	0:"all",
 	1:"currently watching",
 	2:"completed",
@@ -140,37 +140,21 @@ def detail(user, anime):
 
 def showList(user, anime):
 
-	print("Categories for the list:")
-	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
-	category = input("Please enter a category for the list: ").lower()
-	printBreak()
-	if statusStringToNumber(category) >= 0:
-		subAnime = {}
-		if category == "all":
-			subAnime = anime.anime
-		else:
-			subAnime = anime.getAnimeByCategory(category)
+	category = getCategory("list")
+	if category is not None:
+		subAnime = anime.getAnimeByCategory(category)
 		listSize = len(subAnime)
 		if listSize > 0:
 			print("The category contains " + str(listSize) + " anime:")
 			anime.printList(subAnime)
 		else:
 			print("The selected category has no anime.")
-	else:
-		print("No such category.")
 
 def roulette(user, anime):
 
-	print("Categories for the roulette:")
-	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
-	category = input("Please enter a category for the roulette: ").lower()
-	printBreak()
-	if statusStringToNumber(category) >= 0:
-		subAnime = {}
-		if category == "all":
-			subAnime = anime.anime
-		else:
-			subAnime = anime.getAnimeByCategory(category)
+	category = getCategory("roulette")
+	if category is not None:
+		subAnime = anime.getAnimeByCategory(category)
 		rouletteSize = len(subAnime)
 		if rouletteSize > 0:
 			rouletteChoices = list(subAnime.keys())
@@ -179,23 +163,79 @@ def roulette(user, anime):
 			subAnime[rouletteKey].printAnime()
 		else:
 			print("The selected category has no anime.")
-	else:
-		print("No such category.")
+
+def tourney(user, anime):
+
+	category = getCategory("sorter")
+	if category is not None:
+		subAnime = anime.getAnimeByCategory(category)
+		numAnime = len(subAnime)
+		if numAnime > 0:
+
+			# Defines the numbers to use for the tournament.
+			initGroupSize = 2
+			groupsToMerge = 2
+
+			# Runs the tournament.
+			t = Tournament(subAnime, initGroupSize)
+			print("Starting the sorter; type 1 to vote for the first anime, type 2 to vote for the second anime.")
+			print("The sorting process may take a long time to complete, depending on the size of your list.")
+			t.run(groupsToMerge)
+
+			# TODO: Add optimisation stage.
+
+			# Displays the tournament results.
+			print("Sorting process complete, here are the results:")
+			print(t.toString())
+
+			# TODO: Writing to file
+
+		else:
+			print("The selected category has no anime.")
 
 def quitter(user, anime):
 	pass
 
 def statusNumberToString(n):
-	for key in ANIMESTATUS:
+	for key in ANIMEUSERSTATUS:
 		if key == n:
-			return ANIMESTATUS[key]
+			return ANIMEUSERSTATUS[key]
 	return ""
 
 def statusStringToNumber(s):
-	for key in ANIMESTATUS:
-		if ANIMESTATUS[key] == s:
+	for key in ANIMEUSERSTATUS:
+		if ANIMEUSERSTATUS[key] == s:
 			return key
 	return -1
+
+def getCategory(word):
+	print("Categories for the " + word + ":")
+	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
+	category = input("Please enter a category for the " + word + ": ").lower()
+	printBreak()
+	if statusStringToNumber(category) >= 0:
+		return category
+	else:
+		print("No such category.")
+		return None
+
+def filter(animeData, filterData):
+	# TODO: Program this.
+	pass
+
+# Taken from http://stackoverflow.com/questions/15285534/isprime-function-for-python-language
+def is_prime(n):
+  if n == 2 or n == 3: return True
+  if n < 2 or n%2 == 0: return False
+  if n < 9: return True
+  if n%3 == 0: return False
+  r = int(n**0.5)
+  f = 5
+  while f <= r:
+    if n%f == 0: return False
+    if n%(f+2) == 0: return False
+    f +=6
+  return True   
 
 actionNew = newUser
 actionUser = printUser
@@ -204,4 +244,5 @@ actionList = showList
 actionSearch = search
 actionDisplay = detail
 actionRoulette = roulette
+actionTournament = tourney
 actionQuit = quitter
