@@ -270,6 +270,12 @@ class TournamentRound:
 	def addEnd(self, inAnime):
 		self.orderedAnime.append(inAnime)
 
+	def removeStart(self):
+		return self.orderedAnime.pop(0)
+
+	def removeEnd(self):
+		return self.orderedAnime.pop()
+
 	def getAnimes(self):
 		return list(self.orderedAnime)
 
@@ -323,44 +329,17 @@ class Tournament:
 		# Return if only one anime.
 		if (len(self.rounds) == 1 and len(self.rounds[0].getAnimes()) <= 1):
 			return
+
 		# Initialising stage variables.
 		stage = 1
 		maxStages = self.getMaxStages(mergeNum)
+
 		# Loop for all stages of the tournament
 		while(stage <= maxStages):
 
-			# Stage initialisation.
-			print("Stage " + str(stage) + " of " + str(maxStages))
-			completeRounds = []
-
-			# Loops through the rounds.
-			for roundu in self.rounds:
-				newRoundu = TournamentRound()
-				# Creates a queue for all of the anime in the current round.
-				animeQueue = list(roundu.getAnimes())
-				if (len(animeQueue) > 1):
-					# Creates a list to store the two choices.
-					currentQueue = [animeQueue.pop(), animeQueue.pop()]
-					# Looping through the anime to sort.
-					while (len(animeQueue) > 0 or len(currentQueue) == 2):
-						# Gets the user input.
-						print(" \"" + currentQueue[0].name + "\" or \"" + currentQueue[1].name + "\"?")
-						choice = input(" > ")
-						if (choice == "1" or choice == "2"):
-							# Stores the not chosen anime in the new round.
-							notChoice = int(choice) % 2
-							newRoundu.addStart(currentQueue[notChoice])
-							# Get the next anime.
-							if (len(animeQueue) > 0):
-								currentQueue[notChoice] = animeQueue.pop()
-							else:
-								currentQueue.remove(currentQueue[notChoice])
-						# TODO: Allow undoing.
-					# Put the final choice into the new round, and store the now completed round.
-					newRoundu.addStart(currentQueue.pop())
-				elif (len(animeQueue) == 1):
-					newRoundu.addStart(animeQueue.pop())
-				completeRounds.append(newRoundu)
+			# Stage execution.
+			print("Main Stage " + str(stage) + " of " + str(maxStages))
+			completeRounds = stager(self.rounds)
 
 			# Performing the merge.
 			self.rounds = completeRounds
@@ -369,6 +348,82 @@ class Tournament:
 
 			# Moving to the next stage.
 			stage += 1
+
+	def stager(self, inRoundList):
+		# Loops through the rounds.
+		completeRoundList = []
+		for roundItem in inRoundList:
+			newRoundItem = rounder(roundItem)
+			completeRoundList.append(newRoundItem)
+		return completeRoundList
+
+	def rounder(self, inRound):
+		# Creates a new round object.
+		newRound = TournamentRound()
+		# Creates a queue for all of the anime in the current round.
+		animeQueue = list(inRound.getAnimes())
+
+		if (len(animeQueue) > 1):
+			# Creates a list to store the two choices.
+			currentQueue = [animeQueue.pop(), animeQueue.pop()]
+			# Stores value for undoing.
+			prevNotChoice = -1
+			# Looping through the anime to sort.
+			while (len(animeQueue) > 0 or len(currentQueue) == 2):
+
+				# Gets the user input.
+				print(" \"" + currentQueue[0].name + "\" or \"" + currentQueue[1].name + "\"?")
+				choice = input(" > ")
+
+				# Anime selection code.
+				if (choice == "1" or choice == "2"):
+					# Stores the not chosen anime in the new round.
+					notChoice = int(choice) % 2
+					newRound.addStart(currentQueue[notChoice])
+					# Get the next anime.
+					if (len(animeQueue) > 0):
+						currentQueue[notChoice] = animeQueue.pop()
+					else:
+						currentQueue.remove(currentQueue[notChoice])
+					# Stores value for undoing.
+					prevNotChoice = notChoice
+
+				# Undo code.
+				elif (choice.upper() = "U"):
+					if (prevNotChoice == -1):
+						print("Cannot undo.")
+					else:
+						animeQueue.append(currentQueue[prevNotChoice])
+						currentQueue[prevNotChoice] = newRound.removeStart()
+						prevNotChoice = -1
+
+			# Put the final choice into the new round, and store the now completed round.
+			newRound.addStart(currentQueue.pop())
+		elif (len(animeQueue) == 1):
+			newRound.addStart(animeQueue.pop())
+		return newRound
+
+	def optimise(self, optimisationCount):
+
+		# Return if only one anime.
+		if (len(self.rounds) == 1 and len(self.rounds[0].getAnimes()) <= 1):
+			return
+
+		# Initialising iteration variables.
+		n = optimisationCount
+
+		# Loop for all stages of the tournament
+		while(n > 0):
+
+			# Stage execution.
+			print("Optimisation Stage " + str(optimisationCount - n + 1) + " of " + str(optimisationCount))
+			completeRounds = stager(self.rounds)
+
+			# Storing optimisation results.
+			self.rounds = completeRounds
+
+			# Moving to the next stage.
+			n -= 1
 
 	def merge(self, inRounds, numToMerge):
 		mergedRounds = []

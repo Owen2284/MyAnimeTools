@@ -66,7 +66,8 @@ def getCommand():
 
 # constants
 COMMANDLIST = [
-	("new", "Allows a new user to be stored.", actionNew, False),
+	("new", "Get a user's MAL data to use with the program.", actionNew, False),
+	#("cache", "Load in a locally cached user to use the program with.", actionCache, False),
 	("clear", "Removes the currently stored user.", actionClear, True),
 	("user", "Shows details about a user.", actionUser, True),
 	("list", "Lists all anime in a category.", actionList, True),
@@ -79,7 +80,7 @@ COMMANDLIST = [
 	#("options", "Toggle or change various setting of this app.", None, False),
 	("quit", "Closes the program.", actionQuit, False)
 ]
-VERSION = "v0.6"
+VERSION = "v0.6.1"
 
 # main program
 start()

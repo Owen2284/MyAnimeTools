@@ -178,13 +178,23 @@ def tourney(user, anime):
 
 			# Runs the tournament.
 			t = Tournament(subAnime, initGroupSize)
-			print("Starting the sorter; type 1 to vote for the first anime, type 2 to vote for the second anime.")
+			print("Starting the sorter; type 1 to vote for the first anime, type 2 to vote for the second anime, or U to undo your last choice.")
 			print("The sorting process may take a long time to complete, depending on the size of your list.")
 			t.run(groupsToMerge)
 
-			# TODO: Add optimisation stage.
+			# Runs the optimiser.
+			printBreak()
+			print("Main sorting stage complete, you can now run one or more optimisation stages.")
+			print("Please enter how many optimisation stages you want to run. (Enter 0 or a non-number for no optimisation)")
+			optimisations = input("> ")
+			try:
+				optimisations = int(optimisations)
+				t.optimise(optimisations)
+			except:
+				pass
 
 			# Displays the tournament results.
+			printBreak()
 			print("Sorting process complete, here are the results:")
 			print(t.toString())
 
