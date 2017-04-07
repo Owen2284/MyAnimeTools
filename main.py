@@ -78,6 +78,7 @@ COMMANDLIST = [
 	#("stats", "Generate various statistics about your anime watching habits.", None, True),
 	#("gantt", "Create a Gantt chart showing when you've been watching anime.", None, True),
 	#("options", "Toggle or change various setting of this app.", None, False),
+	#("test", "dev", actionTest, True),
 	("quit", "Closes the program.", actionQuit, False)
 ]
 VERSION = "v0.6.1"

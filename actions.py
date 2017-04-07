@@ -2,6 +2,7 @@
 import random
 import requests
 import xml.etree.ElementTree as ET
+import datetime
 
 from objects import *
 from actions import *
@@ -13,6 +14,20 @@ ANIMEUSERSTATUS = {
 	3:"on hold",
 	4:"dropped",
 	6:"plan to watch"
+}
+
+ANIMEUSERSTATUSNEW = {
+	"all":0,
+	"currently watching":1,
+	"watching":1,
+	"completed":2,
+	"on hold":3,
+	"hold":3,
+	"oh":3,
+	"dropped":4,
+	"drop":4,
+	"plan to watch":6,
+	"ptw":6
 }
 
 def printBreak():
@@ -198,7 +213,13 @@ def tourney(user, anime):
 			print("Sorting process complete, here are the results:")
 			print(t.toString())
 
-			# TODO: Writing to file
+			# Writing to file.
+			dt = datetime.datetime.now()
+			filename = "lists/sorter-"+category+"-"+dt.hour+":"+dt.minute+".txt"
+			f = open(filename, "w")
+			f.write("Results:\n")
+			f.write(t.toString())
+			print("List written to " + filename + ".")
 
 		else:
 			print("The selected category has no anime.")
@@ -229,23 +250,19 @@ def getCategory(word):
 		print("No such category.")
 		return None
 
-def filter(animeData, filterData):
-	# TODO: Program this.
-	pass
+def blankFilter():
+	newDict = {
+		"categories" : [0,1,2,3,4,6],		# Series category
+		"name" : "",						# Series name search
+		"scoreMax" : 10,
+		"scoreMin" : 0,						# Score between 0 and 10 (inclusive)
+		"year": "",							# Shows airing in year specified. (Blank to ignore)
+		"types": [0,1,2,3,4,5,6,7,8,9,10]	# Series types, such as TV, OVA, etc. (UNIMPLEMENTED)
+	}
+	return newDict
 
-# Taken from http://stackoverflow.com/questions/15285534/isprime-function-for-python-language
-def is_prime(n):
-  if n == 2 or n == 3: return True
-  if n < 2 or n%2 == 0: return False
-  if n < 9: return True
-  if n%3 == 0: return False
-  r = int(n**0.5)
-  f = 5
-  while f <= r:
-    if n%f == 0: return False
-    if n%(f+2) == 0: return False
-    f +=6
-  return True   
+def tester(user, anime):
+	pass
 
 actionNew = newUser
 actionUser = printUser
@@ -255,4 +272,5 @@ actionSearch = search
 actionDisplay = detail
 actionRoulette = roulette
 actionTournament = tourney
+actionTest = tester
 actionQuit = quitter

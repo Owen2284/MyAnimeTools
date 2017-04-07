@@ -175,6 +175,20 @@ class AnimeList:
 					newAnime[key] = currentAnime
 			return newAnime
 
+	def filterAnime(self, filterData):
+		# TODO: Add this to commands.
+		returnAnime = {}
+		startAnime = self.getAnimeByPartName(filterData["name"])
+		for key in startAnime:
+			currentAnime = startAnime[key]
+			catCheck = (currentAnime.userStatusNum in filterData["categories"])
+			scoreCheck = (currentAnime.userScore in range(filterData["scoreMin"], filterData["scoreMax"]+1))
+			dateCheck = (filterData["year"] == "") or (int(filterData["year"]) in range(int(currentAnime.seriesStartDate[0:4]), int(currentAnime.seriesEndDate[0:4])))
+			#typeCheck = (currentAnime.seriesTypeNum in filterData["types"])
+			if catCheck and scoreCheck and dateCheck:
+				returnAnime[key] = currentAnime
+		return returnAnime
+
 	def getAnimeCount():
 		return len(anime)
 
@@ -389,7 +403,7 @@ class Tournament:
 					prevNotChoice = notChoice
 
 				# Undo code.
-				elif (choice.upper() = "U"):
+				elif (choice.upper() == "U"):
 					if (prevNotChoice == -1):
 						print("Cannot undo.")
 					else:
