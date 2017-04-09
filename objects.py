@@ -1,4 +1,7 @@
 import random
+import copy
+
+from formatting import *
 
 class Anime:
 
@@ -29,16 +32,6 @@ class Anime:
 	userLastUpdatedTimestamp = -1
 	userTags = ""
 
-	ANIMEUSERSTATUS = {
-		0:"All",
-		1:"Currently Watching",
-		2:"Completed",
-		3:"On Hold",
-		4:"Dropped",
-		6:"Plan To Watch"
-	}
-
-
 	# Constructor
 	def __init__(self, inID, inName, inSynonymsStr, inSeriesTypeNum, inSeriesEpisodes,
 		inSeriesStatusNum, inSeriesStartDate, inSeriesEndDate, inSeriesImageURL,
@@ -49,46 +42,36 @@ class Anime:
 		self.name = inName
 		self.link = "https://myanimelist.net/anime/" + self.aID
 
-		self.seriesSynonymsStr = inSynonymsStr
 		self.seriesSynonymsList = self.synonymsStringToList(inSynonymsStr)
+		self.seriesSynonymsStr = ", ".join(self.seriesSynonymsList)
 		self.seriesTypeNum = inSeriesTypeNum
-		self.seriesTypeStr = ""
+		self.seriesTypeStr = seriesTypeNumberToString(inSeriesTypeNum)
 		self.seriesEpisodes = inSeriesEpisodes
 		self.seriesStatusNum = inSeriesStatusNum
-		self.seriesStatusStr = self.statusNumberToString(inSeriesStatusNum)
-		self.seriesStartDate = inSeriesStartDate
-		self.seriesEndDate = inSeriesEndDate
+		self.seriesStatusStr = seriesStatusNumberToString(inSeriesStatusNum)
+		self.seriesStartDate = formatDateNicely(inSeriesStartDate)
+		self.seriesEndDate = formatDateNicely(inSeriesEndDate)
 		self.seriesImageURL = inSeriesImageURL
 
 		self.userID = "0"
 		self.userWatchedEps = inUserWatchedEps
-		self.userStartDate = inUserStartDate
-		self.userEndDate = inUserEndDate
+		self.userStartDate = formatDateNicely(inUserStartDate)
+		self.userEndDate = formatDateNicely(inUserEndDate)
 		self.userScore = inUserScore
 		self.userStatusNum = inUserStatusNum
-		self.userStatusStr = self.statusNumberToString(inUserStatusNum)
+		self.userStatusStr = userStatusNumberToString(inUserStatusNum)
 		self.userRewatching = inUserRewatching
 		self.userRewatchingEp = inUserRewatchingEp
 		self.userLastUpdatedTimestamp = inUserLastUpdatedTimestamp
 		self.userTags = inUserTagsStr
 
 	# Methods used during construction.
-	def statusNumberToString(self, n):
-		for key in self.ANIMEUSERSTATUS:
-			if key == n:
-				return self.ANIMEUSERSTATUS[key]
-		return ""
-
-	def statusStringToNumber(self, s):
-		for key in self.ANIMEUSERSTATUS:
-			if self.ANIMEUSERSTATUS[key] == s:
-				return key
-		return -1
-
 	def synonymsStringToList(self, synStr):
 		possibleNames = list()
 		for altName in synStr.split(";"):
-			possibleNames.append(altName)
+			cleanName = altName.strip()
+			if cleanName != "":
+				possibleNames.append(cleanName)
 		return possibleNames
 
 
@@ -125,7 +108,6 @@ class Anime:
 		print(" Times Rewatched: " + str(self.userRewatching))
 		print(" Rewatched to episode: " + str(self.userRewatchingEp))
 		print(" User Tags: " + self.userTags)
-
 
 
 class AnimeList:
@@ -165,27 +147,30 @@ class AnimeList:
 		return returnAnime
 
 	def getAnimeByCategory(self, inCategory):
-		if inCategory == "all":
-			return list(self.anime)
+		theCategoryNum = -1
+		for key in ANIMEUSERSTATUS:
+			if key.lower() == inCategory.lower():
+				theCategoryNum = ANIMEUSERSTATUS[key]
+		if theCategoryNum == 0:
+			return copy.deepcopy(self.anime)
 		else:
 			newAnime = {}
 			for key in self.anime:
 				currentAnime = self.anime[key]
-				if currentAnime.userStatusStr.lower() == inCategory:
+				if currentAnime.userStatusNum == theCategoryNum:
 					newAnime[key] = currentAnime
 			return newAnime
 
 	def filterAnime(self, filterData):
-		# TODO: Add this to commands.
 		returnAnime = {}
 		startAnime = self.getAnimeByPartName(filterData["name"])
 		for key in startAnime:
 			currentAnime = startAnime[key]
-			catCheck = (currentAnime.userStatusNum in filterData["categories"])
+			catCheck = (currentAnime.userStatusNum in filterData["userStatuses"])
 			scoreCheck = (currentAnime.userScore in range(filterData["scoreMin"], filterData["scoreMax"]+1))
-			dateCheck = (filterData["year"] == "") or (int(filterData["year"]) in range(int(currentAnime.seriesStartDate[0:4]), int(currentAnime.seriesEndDate[0:4])))
-			#typeCheck = (currentAnime.seriesTypeNum in filterData["types"])
-			if catCheck and scoreCheck and dateCheck:
+			dateCheck = (filterData["airedIn"] == "") or (int(filterData["airedIn"]) in range(int(currentAnime.seriesStartDate.split(" ")[2]), int(currentAnime.seriesStartDate.split(" ")[2])))
+			typeCheck = (currentAnime.seriesTypeNum in filterData["seriesTypes"])
+			if catCheck and scoreCheck and dateCheck and typeCheck:
 				returnAnime[key] = currentAnime
 		return returnAnime
 
@@ -200,7 +185,6 @@ class AnimeList:
 
 	def clear(self):
 		self.anime = {}
-
 
 
 class User:
@@ -268,7 +252,6 @@ class User:
 		self.daysSpentWatching = 0.0
 
 
-
 class TournamentRound:
 
 	# Fields
@@ -308,14 +291,14 @@ class TournamentRound:
 			returnedString += " " + str(j+1) + ". " + animo.name + "\n"
 
 
-
 class Tournament:
 
 	# Fields
-	rounds = []
+	rounds = None
 
 	# Methods
 	def __init__(self, inAnime, initRoundSize):
+		self.rounds = []
 		internalList = list(inAnime.values())
 		# Creates whole rounds.
 		while (len(internalList) >= initRoundSize):
@@ -353,7 +336,7 @@ class Tournament:
 
 			# Stage execution.
 			print("Main Stage " + str(stage) + " of " + str(maxStages))
-			completeRounds = stager(self.rounds)
+			completeRounds = self.stager(self.rounds)
 
 			# Performing the merge.
 			self.rounds = completeRounds
@@ -367,7 +350,7 @@ class Tournament:
 		# Loops through the rounds.
 		completeRoundList = []
 		for roundItem in inRoundList:
-			newRoundItem = rounder(roundItem)
+			newRoundItem = self.rounder(roundItem)
 			completeRoundList.append(newRoundItem)
 		return completeRoundList
 
@@ -431,7 +414,7 @@ class Tournament:
 
 			# Stage execution.
 			print("Optimisation Stage " + str(optimisationCount - n + 1) + " of " + str(optimisationCount))
-			completeRounds = stager(self.rounds)
+			completeRounds = self.stager(self.rounds)
 
 			# Storing optimisation results.
 			self.rounds = completeRounds

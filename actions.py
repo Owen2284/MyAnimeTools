@@ -1,43 +1,20 @@
 # Imports
-import random
 import requests
 import xml.etree.ElementTree as ET
-import datetime
 
-from objects import *
-from actions import *
+from formatting import userStatusNumberToString
+from objects import Anime, AnimeList, User
+from constants import VERSION, ANIMEUSERSTATUS
 
-ANIMEUSERSTATUS = {
-	0:"all",
-	1:"currently watching",
-	2:"completed",
-	3:"on hold",
-	4:"dropped",
-	6:"plan to watch"
-}
-
-ANIMEUSERSTATUSNEW = {
-	"all":0,
-	"currently watching":1,
-	"watching":1,
-	"completed":2,
-	"on hold":3,
-	"hold":3,
-	"oh":3,
-	"dropped":4,
-	"drop":4,
-	"plan to watch":6,
-	"ptw":6
-}
+def printIntro():
+	printBreak()
+	print("MAL App " + VERSION)
 
 def printBreak():
 	print("-----")
 
-def newUser(user, anime):
-	outData = getUser()
-	if (outData[0] is not None):
-		user.merge(outData[0])
-		anime.merge(outData[1])
+def getCommand():
+	return input("Enter a command:- ").lower().split()
 
 def getUser():
 	username = input("Enter the name of the user to retrieve: ").lower()
@@ -48,11 +25,12 @@ def getUser():
 	else:
 		print("User " + data[0].userName + " loaded in.")
 		printBreak()
-		printUser(data[0], data[1])
+		data[0].printUser()
 	return data
 
 def initUser(inUser):
 
+	# Example: https://kuristina.herokuapp.com/anime/EmeraldSplash.xml
 	#rootNode = constructXMLTree("mal", "http://myanimelist.net/malappinfo.php?u=" + inUser + "&status=all&type=anime")
 	rootNode = constructXMLTree("kuristina", "https://kuristina.herokuapp.com/anime/" + inUser + ".xml")
 	
@@ -114,137 +92,12 @@ def constructXMLTree(type, url):
 	rootNode = ET.fromstring(rawResponse)
 	return rootNode
 
-def printUser(user, anime):
-	user.printUser()
-
-def clearUser(user, anime):
-	user.clear()
-	anime.clear()
-	print("User data cleared.")
-
-def search(user, anime):
-
-	searchTerm = input("Please enter a search term: ").lower()
-	printBreak()
-	subAnime = {}
-	added = False
-
-	subAnime = anime.getAnimeByPartName(searchTerm)
-
-	searchSize = len(subAnime)
-	if searchSize > 0:
-		print(str(searchSize) + " results found:")
-		print()
-		for item in subAnime:
-			subAnime[item].printAnime()
-			print()
-	else:
-		print("There were no anime found with that string fragment in them.")
-
-def detail(user, anime):
-
-	detailName = input("Please enter the anime to select: ").lower()
-	printBreak()
-
-	detailResult = anime.getAnimeByName(detailName)
-	
-	if detailResult is not None:
-		detailResult.printAnimeDetailed()
-	else:
-		print("No matching anime. Consider using the \"list\" function to see exact names.")
-
-def showList(user, anime):
-
-	category = getCategory("list")
-	if category is not None:
-		subAnime = anime.getAnimeByCategory(category)
-		listSize = len(subAnime)
-		if listSize > 0:
-			print("The category contains " + str(listSize) + " anime:")
-			anime.printList(subAnime)
-		else:
-			print("The selected category has no anime.")
-
-def roulette(user, anime):
-
-	category = getCategory("roulette")
-	if category is not None:
-		subAnime = anime.getAnimeByCategory(category)
-		rouletteSize = len(subAnime)
-		if rouletteSize > 0:
-			rouletteChoices = list(subAnime.keys())
-			rouletteKey = random.choice(rouletteChoices)
-			print("Out of " + str(rouletteSize) + " anime, the roulette chose: ")
-			subAnime[rouletteKey].printAnime()
-		else:
-			print("The selected category has no anime.")
-
-def tourney(user, anime):
-
-	category = getCategory("sorter")
-	if category is not None:
-		subAnime = anime.getAnimeByCategory(category)
-		numAnime = len(subAnime)
-		if numAnime > 0:
-
-			# Defines the numbers to use for the tournament.
-			initGroupSize = 2
-			groupsToMerge = 2
-
-			# Runs the tournament.
-			t = Tournament(subAnime, initGroupSize)
-			print("Starting the sorter; type 1 to vote for the first anime, type 2 to vote for the second anime, or U to undo your last choice.")
-			print("The sorting process may take a long time to complete, depending on the size of your list.")
-			t.run(groupsToMerge)
-
-			# Runs the optimiser.
-			printBreak()
-			print("Main sorting stage complete, you can now run one or more optimisation stages.")
-			print("Please enter how many optimisation stages you want to run. (Enter 0 or a non-number for no optimisation)")
-			optimisations = input("> ")
-			try:
-				optimisations = int(optimisations)
-				t.optimise(optimisations)
-			except:
-				pass
-
-			# Displays the tournament results.
-			printBreak()
-			print("Sorting process complete, here are the results:")
-			print(t.toString())
-
-			# Writing to file.
-			dt = datetime.datetime.now()
-			filename = "lists/sorter-"+category+"-"+dt.hour+":"+dt.minute+".txt"
-			f = open(filename, "w")
-			f.write("Results:\n")
-			f.write(t.toString())
-			print("List written to " + filename + ".")
-
-		else:
-			print("The selected category has no anime.")
-
-def quitter(user, anime):
-	pass
-
-def statusNumberToString(n):
-	for key in ANIMEUSERSTATUS:
-		if key == n:
-			return ANIMEUSERSTATUS[key]
-	return ""
-
-def statusStringToNumber(s):
-	for key in ANIMEUSERSTATUS:
-		if ANIMEUSERSTATUS[key] == s:
-			return key
-	return -1
-
 def getCategory(word):
 	print("Categories for the " + word + ":")
 	print("All - Plan To Watch - On Hold - Dropped - Currently Watching - Completed")
 	category = input("Please enter a category for the " + word + ": ").lower()
 	printBreak()
-	if statusStringToNumber(category) >= 0:
+	if category in [x.lower() for x in ANIMEUSERSTATUS]:
 		return category
 	else:
 		print("No such category.")
@@ -252,25 +105,32 @@ def getCategory(word):
 
 def blankFilter():
 	newDict = {
-		"categories" : [0,1,2,3,4,6],		# Series category
-		"name" : "",						# Series name search
+		"userStatuses" : [1,2,3,4,6],		# User's category for the anime.
+		"name" : "",						# Series part name search
 		"scoreMax" : 10,
-		"scoreMin" : 0,						# Score between 0 and 10 (inclusive)
-		"year": "",							# Shows airing in year specified. (Blank to ignore)
-		"types": [0,1,2,3,4,5,6,7,8,9,10]	# Series types, such as TV, OVA, etc. (UNIMPLEMENTED)
+		"scoreMin" : 0,						# Range of scores to include
+		"airedIn": "",						# Shows airing in year specified. (Blank to ignore)
+		"seriesTypes": [1,2,3,4,5,6]		# Series types, such as TV, OVA, etc.
 	}
 	return newDict
 
-def tester(user, anime):
-	pass
+def getFilter():
+	animeFilter = blankFilter()
+	filterDone = False
+	filterCommand = None
+	while filterDone != True:
 
-actionNew = newUser
-actionUser = printUser
-actionClear = clearUser
-actionList = showList
-actionSearch = search
-actionDisplay = detail
-actionRoulette = roulette
-actionTournament = tourney
-actionTest = tester
-actionQuit = quitter
+		# Display
+		print("Current filter status:")
+		print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["categories"]))
+		print(" (N)ame contains: \"" + animeFilter["name"] + "\"")
+		print(" (S)core range: " + animeFilter["scoreMin"] + " to " + animeFilter["scoreMax"])
+		print(" (A)ired in the year: " + animeFilter["airedIn"])
+		print(" (T)ype of series: " + ", ".join(seriesTypeNumberToString(x) for x in animeFilter["seriesTypes"]))
+		print("Type the first letter of a filter field followed by the values to use for it to edit the filter, or enter \"done\" to confirm the filter.")
+
+		# Input
+		filterCommand = input
+
+		# Filter alteration
+
