@@ -183,3 +183,50 @@ def getFilter(word):
 		printBreak()
 
 	return animeFilter
+
+def getUserAtLaunch(username):
+	data = initUser(username)
+	if (data[0] is None) or (data[1] is None):
+		print("Unable to load initial user.")
+	else:
+		print("User " + data[0].userName + " loaded in.")
+		printBreak()
+		data[0].printUser()
+	return data
+
+def readOptions(path):
+	options = {}
+
+	with open(path, "r") as f:
+		for line in f:
+			datas = line.strip().split(":")
+			options[datas[0]] = datas[1]
+
+	for key in options:
+		if isinstance(options[key], str):
+			if options[key].lower() == "on":
+				options[key] = True
+			elif options[key].lower() == "off":
+				options[key] = False
+
+	return options
+
+def writeOptions(path, options):
+
+	for key in options:
+		if isinstance(options[key], bool):
+			if options[key]:
+				options[key] = "On"
+			else:
+				options[key] = "Off"
+
+	with open(path, "w") as f:
+		for key in options:
+			newline = key + ":" + options[key] + "\n"
+			f.write(newline)
+
+def createOptions(path):
+	writeOptions(path, {
+		"useFiltering":"On",
+		"defaultUserLoad":""
+	})

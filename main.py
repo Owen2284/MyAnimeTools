@@ -1,9 +1,15 @@
-from actions import printIntro, printBreak, getCommand
+import os
+import os.path
+
+from actions import printIntro, printBreak, getCommand, getUserAtLaunch, readOptions, writeOptions, createOptions
 from objects import User, AnimeList
 from commands import COMMANDLIST, printCommands
+from constants import OPTIONSPATH
 
 # functions
-def start():	
+def start():
+
+	printIntro()
 
 	command = [""]
 	commandInfo = None
@@ -11,15 +17,24 @@ def start():
 
 	user = User("", "", 0, 0, 0, 0, 0, 0.0)
 	anime = AnimeList(None)
-	options = {
-		"useFiltering": True,
-		"launchLoad": False
-	}
-	# TODO: Instaload EmeraldSplash function.
-	if options["launchLoad"] == True:
-		COMMANDLIST[0][2](user, anime, options)
+	
+	# Reading in options.
+	if os.path.exists(OPTIONSPATH) == False:
+		os.makedirs(OPTIONSPATH.split("/")[0], exist_ok=True)
+		createOptions(OPTIONSPATH)
+	options = readOptions(OPTIONSPATH)
 
-	printIntro()
+	# Applying options.
+	if options["defaultUserLoad"] != "":
+		printBreak()
+		print("Attemting to load in default user...")
+		outData = getUserAtLaunch(options["defaultUserLoad"])
+		if (outData[0] is not None):
+			user.merge(outData[0])
+			anime.merge(outData[1])
+		else:
+			options["defaultUserLoad"] = ""
+			writeOptions(OPTIONSPATH, options)
 
 	while quitTime != True:
 

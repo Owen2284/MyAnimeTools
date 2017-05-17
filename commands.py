@@ -1,7 +1,8 @@
 import random
 import datetime
+import os
 
-from actions import getUser, getCategory, printBreak, getFilter
+from actions import getUser, getCategory, printBreak, getFilter, writeOptions
 from objects import Tournament
 from formatting import userStatusNumberToString
 
@@ -140,20 +141,27 @@ def tourney(user, anime, options):
 			print("Tournament sorting process complete, here are the results:")
 			print(t.toString())
 
+			# TODO: Name list function.
+
 			# Writing to file.
 			dt = datetime.datetime.now()
 			filename = "lists/tournament-"+categoryString+"-"+str(dt.hour)+"-"+str(dt.minute)+".txt"
-			f = open(filename, "w")
-			f.write("Results:\n")
-			f.write(t.toString())
+			os.makedirs(filename.split("/")[0], exist_ok=True)
+			with open(filename, "w") as f:
+				f.write("Results:\n")
+				f.write(t.toString())
 			print("List written to " + filename + ".")
 
 		else:
 			print("The selected category has no anime.")
 
+def gantt(user, anime, options):
+	pass
+
 def optioniser(user, anime, options):
 	print("Current options:")
 	print(" (A)dvanced filters: " + ("On" if options["useFiltering"] == True else "Off"))
+	print(" (D)efault user to load in: " + ("\"" + options["defaultUserLoad"] + "\"" if options["defaultUserLoad"] != "" else "None"))
 	print("Enter the bracketed letter to toggle the corresponding option.")
 	printBreak()
 
@@ -162,6 +170,12 @@ def optioniser(user, anime, options):
 		if optionToToggle == "a":
 			options["useFiltering"] = not options["useFiltering"]
 			print("Advanced filters are now " + ("enabled." if options["useFiltering"] == True else "disabled."))
+			writeOptions("data/options.txt", options)
+		elif optionToToggle == "d":
+			theuser = input("Enter the username to load in at launch, or enter nothing to disable the function: ")
+			options["defaultUserLoad"] = theuser
+			print("Default user to load in now set to " + ("\"" + options["defaultUserLoad"] + "\"." if options["defaultUserLoad"] != "" else "None."))
+			writeOptions("data/options.txt", options)
 		else:
 			print("Invalid character entered.")
 	else:
@@ -177,10 +191,10 @@ actionNew = newUser
 actionUser = printUser
 actionClear = clearUser
 actionFilter = showList
-#actionSearch = search
 actionDisplay = detail
 actionRoulette = roulette
 actionTournament = tourney
+actionGantt = gantt
 actionOptions = optioniser
 actionTest = tester
 actionQuit = quitter
@@ -196,7 +210,7 @@ COMMANDLIST = [
 	("roulette", "Selects a random anime from your list.", actionRoulette, True),
 	("tournament", "Orders anime based on your preferences to determine your favourite shows.", actionTournament, True),
 	#("stats", "Generate various statistics about your anime watching habits.", None, True),
-	#("gantt", "Create a Gantt chart showing when you've been watching anime.", None, True),
+	#("gantt", "Create a Gantt chart showing when you've been watching anime.", actionGantt, True),
 	("options", "Toggle or change various setting of this app.", actionOptions, False),
 	#("test", "Developer command for testing code.", actionTest, True),
 	("quit", "Closes the program.", actionQuit, False)

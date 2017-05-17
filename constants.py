@@ -1,6 +1,8 @@
 from collections import OrderedDict
 
-VERSION = "v0.7.0"
+VERSION = "v0.7.1"
+
+OPTIONSPATH = "data/options.txt"
 
 ANIMEUSERSTATUS = OrderedDict([
 	("All",0),
