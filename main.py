@@ -11,6 +11,13 @@ def start():
 
 	user = User("", "", 0, 0, 0, 0, 0, 0.0)
 	anime = AnimeList(None)
+	options = {
+		"useFiltering": True,
+		"launchLoad": False
+	}
+	# TODO: Instaload EmeraldSplash function.
+	if options["launchLoad"] == True:
+		COMMANDLIST[0][2](user, anime, options)
 
 	printIntro()
 
@@ -37,7 +44,7 @@ def start():
 			if commandInfo != None:
 				if (commandInfo[3] == False) or (user.isLoaded()):
 					if commandInfo[2] != None:
-						commandInfo[2](user, anime)
+						commandInfo[2](user, anime, options)
 					else :
 						print("Unimplemented.")
 				else:

@@ -1,5 +1,5 @@
 echo off
 cls
-title MAL Roulette
+title MyAnimeTools
 python main.py
 pause

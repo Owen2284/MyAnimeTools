@@ -2,7 +2,7 @@
 import requests
 import xml.etree.ElementTree as ET
 
-from formatting import userStatusNumberToString
+from formatting import userStatusNumberToString, userStatusStringToNumber, seriesTypeNumberToString, seriesTypeStringToNumber
 from objects import Anime, AnimeList, User
 from constants import VERSION, ANIMEUSERSTATUS
 
@@ -100,7 +100,6 @@ def getCategory(word):
 	if category in [x.lower() for x in ANIMEUSERSTATUS]:
 		return category
 	else:
-		print("No such category.")
 		return None
 
 def blankFilter():
@@ -114,23 +113,73 @@ def blankFilter():
 	}
 	return newDict
 
-def getFilter():
+def getFilter(word):
 	animeFilter = blankFilter()
 	filterDone = False
 	filterCommand = None
 	while filterDone != True:
 
 		# Display
-		print("Current filter status:")
-		print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["categories"]))
+		print("Current filter status for the " + word + ":")
+		print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["userStatuses"]))
 		print(" (N)ame contains: \"" + animeFilter["name"] + "\"")
-		print(" (S)core range: " + animeFilter["scoreMin"] + " to " + animeFilter["scoreMax"])
+		print(" (S)core range: " + str(animeFilter["scoreMin"]) + " to " + str(animeFilter["scoreMax"]))
 		print(" (A)ired in the year: " + animeFilter["airedIn"])
 		print(" (T)ype of series: " + ", ".join(seriesTypeNumberToString(x) for x in animeFilter["seriesTypes"]))
-		print("Type the first letter of a filter field followed by the values to use for it to edit the filter, or enter \"done\" to confirm the filter.")
+		print("Type the first letter of a filter field followed by the values to use for it to edit the filter separated by commas (e.g. \"U watching, plan to watch, dropped\", \"S 4,9\", \"T tv,ova\"), or enter \"done\" to confirm the filter.")
+		printBreak()
 
 		# Input
-		filterCommand = input
+		filterCommand = input("> ").strip()
 
 		# Filter alteration
+		if filterCommand.startswith("done"):
+			filterDone = True
+		else:
+			splitCommand = [filterCommand[0].lower(), filterCommand[2:]]
+			if splitCommand[0] == "u":
+				commandStatuses = [x.strip() for x in splitCommand[1].split(",")]
+				newStatuses = []
+				for sta in commandStatuses:
+					staNum = userStatusStringToNumber(sta)
+					if staNum >= 0:
+						newStatuses.append(staNum)
+				if len(newStatuses) > 0:
+					animeFilter["userStatuses"] = newStatuses
+					print("User statuses set to: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["userStatuses"]))
+				else:
+					print("Invalid statuses entered for (U)ser status field.")
+			elif splitCommand[0] == "n":
+				animeFilter["name"] = splitCommand[1]
+				print("Name fragment to search for set to: \"" + animeFilter["name"] + "\"")
+			elif splitCommand[0] == "s":
+				scoreRanges = [int(x) for x in splitCommand[1].split(",") if x.isdigit()]
+				if (len(scoreRanges) == 2) and (scoreRanges[0] <= scoreRanges[1]) and (scoreRanges[0] >= 0) and (scoreRanges[1] <= 10):
+					animeFilter["scoreMin"] = scoreRanges[0]
+					animeFilter["scoreMax"] = scoreRanges[1]
+					print("Score range set to: " + str(animeFilter["scoreMin"]) + " to " + str(animeFilter["scoreMax"]))
+				else:
+					print("Invalid range for (S)core range.")
+			elif splitCommand[0] == "a":
+				if (len(splitCommand[1]) == 4) and (splitCommand.isdigit()):
+					animeFilter["airedIn"] = int(splitCommand[1])
+					print("Air year to filter by set to: " + animeFilter["airedIn"])
+				else:
+					print("Invalid year entered for (A)ir year.")
+			elif splitCommand[0] == "t":
+				commandStatuses = [x.strip() for x in splitCommand[1].split(",")]
+				newStatuses = []
+				for sta in commandStatuses:
+					staNum = seriesTypeStringToNumber(sta)
+					if staNum >= 0:
+						newStatuses.append(staNum)
+				if len(newStatuses) > 0:
+					animeFilter["seriesTypes"] = newStatuses
+					print("Series types set to: " + ", ".join(seriesTypeNumberToString(x) for x in animeFilter["seriesTypes"]))
+				else:
+					print("Invalid series (T)ypes entered.")
+			else:
+				print("Invalid command.")
+		printBreak()
 
+	return animeFilter

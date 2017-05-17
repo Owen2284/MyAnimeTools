@@ -147,32 +147,40 @@ class AnimeList:
 		return returnAnime
 
 	def getAnimeByCategory(self, inCategory):
-		theCategoryNum = -1
-		for key in ANIMEUSERSTATUS:
-			if key.lower() == inCategory.lower():
-				theCategoryNum = ANIMEUSERSTATUS[key]
-		if theCategoryNum == 0:
-			return copy.deepcopy(self.anime)
+		if inCategory is not None:
+			theCategoryNum = -1
+			for key in ANIMEUSERSTATUS:
+				if key.lower() == inCategory.lower():
+					theCategoryNum = ANIMEUSERSTATUS[key]
+			if theCategoryNum == 0:
+				return copy.deepcopy(self.anime)
+			else:
+				newAnime = {}
+				for key in self.anime:
+					currentAnime = self.anime[key]
+					if currentAnime.userStatusNum == theCategoryNum:
+						newAnime[key] = currentAnime
+				return newAnime
 		else:
-			newAnime = {}
-			for key in self.anime:
-				currentAnime = self.anime[key]
-				if currentAnime.userStatusNum == theCategoryNum:
-					newAnime[key] = currentAnime
-			return newAnime
+			print("Invalid category.")
+			return None
 
 	def filterAnime(self, filterData):
-		returnAnime = {}
-		startAnime = self.getAnimeByPartName(filterData["name"])
-		for key in startAnime:
-			currentAnime = startAnime[key]
-			catCheck = (currentAnime.userStatusNum in filterData["userStatuses"])
-			scoreCheck = (currentAnime.userScore in range(filterData["scoreMin"], filterData["scoreMax"]+1))
-			dateCheck = (filterData["airedIn"] == "") or (int(filterData["airedIn"]) in range(int(currentAnime.seriesStartDate.split(" ")[2]), int(currentAnime.seriesStartDate.split(" ")[2])))
-			typeCheck = (currentAnime.seriesTypeNum in filterData["seriesTypes"])
-			if catCheck and scoreCheck and dateCheck and typeCheck:
-				returnAnime[key] = currentAnime
-		return returnAnime
+		if filterData is not None:
+			returnAnime = {}
+			startAnime = self.getAnimeByPartName(filterData["name"]) if filterData["name"] != "" else self.getAnimeByCategory("All")
+			for key in startAnime:
+				currentAnime = startAnime[key]
+				catCheck = (currentAnime.userStatusNum in filterData["userStatuses"]) or (0 in filterData["userStatuses"])
+				scoreCheck = (currentAnime.userScore in range(filterData["scoreMin"], filterData["scoreMax"]+1))
+				dateCheck = (filterData["airedIn"] == "") or (int(filterData["airedIn"]) in range(int(currentAnime.seriesStartDate.split(" ")[2]), int(currentAnime.seriesStartDate.split(" ")[2])))
+				typeCheck = (currentAnime.seriesTypeNum in filterData["seriesTypes"]) or (0 in filterData["seriesTypes"])
+				if catCheck and scoreCheck and dateCheck and typeCheck:
+					returnAnime[key] = currentAnime
+			return returnAnime
+		else:
+			print("Invalid filter data.")
+			return None
 
 	def getAnimeCount():
 		return len(anime)
@@ -185,6 +193,51 @@ class AnimeList:
 
 	def clear(self):
 		self.anime = {}
+
+
+class CompositeAnime:
+
+	name = ""
+	composedAnime = None
+
+	def __init__(self, name, listOfAnime):
+		self.name = name
+		self.composedAnime = listOfAnime
+
+	# Default anime methods
+	def getAllNames(self):
+		possibleNames = []
+		for i in self.composedAnime:
+			possibleNames = possibleNames + self.composedAnime.getAllNames()
+		return possibleNames
+
+	def printAnime(self):
+		print(" Title: " + self.name)
+		print(" Contains: ")
+		for i in self.composedAnime:
+			print("  " + self.composedAnime[i].name)
+
+	def printAnimeShort(self):
+		print(" " + self.name)
+
+	def printAnimeDetailed(self):
+		print(" Title: " + self.name)
+		print(" Average Score: " + str(self.getAverageScore()))
+		print(" Contains: ")
+		for i in self.composedAnime:
+			print(str(i) + ".")
+			print("  Title: " + self.composedAnime[i].name)
+			print("  Synonyms: " + self.composedAnime[i].seriesSynonymsStr)
+			print("  Number of episodes: " + str(self.composedAnime[i].seriesEpisodes))
+
+	# Unique composite anime methods.
+	def getAverageScore():
+		total = 0
+		for i in self.composedAnime:
+			total += self.composedAnime[i].userScore
+		return total / len(self.composedAnime)
+
+	
 
 
 class User:
@@ -438,7 +491,7 @@ class Tournament:
 			# Determine the max length of the rounds.
 			maxAnimes = max(lengths)
 			# Adding the animes to the new round.
-			# TODO: Change merging order around, so that it maches flow of decision bubbling in the main algorithm
+			# TODO: Alter merging order to distribute anime from smaller rounds into larger rounds evenly.
 			for i in range(0, maxAnimes):
 				for j in range(0, len(roundsToMerge)):
 					if (i < lengths[j]):

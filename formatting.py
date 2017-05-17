@@ -24,5 +24,11 @@ def seriesTypeNumberToString(n):
 			return key
 	return ""
 
+def seriesTypeStringToNumber(s):
+	for key in ANIMESERIESTYPE:
+		if key.lower() == s.lower():
+			return ANIMESERIESTYPE[key]
+	return -1
+
 def formatDateNicely(dateStr):
 	return DAYS[int(dateStr.split("-")[2])-1] + " " + MONTHSSHORT[int(dateStr.split("-")[1])-1] + " " + dateStr.split("-")[0]
