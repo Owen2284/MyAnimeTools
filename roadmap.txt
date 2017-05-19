@@ -1,0 +1,15 @@
+v0.8.0
+------
+Changed filter screen.
+Fixed bug with year filtering.
+Added fields for raw date data in the Anime object.
+Implement gantt command.
+
+v1.0.0
+------
+
+
+TODO
+----
+Implemented stats command.
+Implemented compare command.
