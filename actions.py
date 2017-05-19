@@ -21,7 +21,12 @@ def getUser():
 	print("Contacting MAL...")
 	data = initUser(username)
 	if (data[0] is None) or (data[1] is None):
-		print("No such user.")
+		if data[2] == 0:
+			print("Error: No such user.")
+		elif data[2] == 1:
+			print("Error: Connection issue arose.")
+		else:
+			print("Error: Unknown error.")
 	else:
 		print("User " + data[0].userName + " loaded in.")
 		printBreak()
@@ -33,6 +38,8 @@ def initUser(inUser):
 	# Example: https://kuristina.herokuapp.com/anime/EmeraldSplash.xml
 	#rootNode = constructXMLTree("mal", "http://myanimelist.net/malappinfo.php?u=" + inUser + "&status=all&type=anime")
 	rootNode = constructXMLTree("kuristina", "https://kuristina.herokuapp.com/anime/" + inUser + ".xml")
+	if rootNode == None:
+		return (None, None, 1)
 	
 	userObj = None
 	animeObj = None
@@ -87,7 +94,11 @@ def initUser(inUser):
 		return (None, None, 0)
 
 def constructXMLTree(type, url):
-	response = requests.get(url)
+	response = None
+	try:
+		response = requests.get(url)
+	except requests.exceptions.ConnectionError:
+		return None
 	rawResponse = response.text.encode("ascii", "ignore")
 	rootNode = ET.fromstring(rawResponse)
 	return rootNode
@@ -115,26 +126,50 @@ def blankFilter():
 
 def getFilter(word):
 	animeFilter = blankFilter()
-	filterDone = False
+	done = False
+	view = True
+	help = False
 	filterCommand = None
-	while filterDone != True:
+	while done != True:
 
 		# Display
-		print("Current filter status for the " + word + ":")
-		print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["userStatuses"]))
-		print(" (N)ame contains: \"" + animeFilter["name"] + "\"")
-		print(" (S)core range: " + str(animeFilter["scoreMin"]) + " to " + str(animeFilter["scoreMax"]))
-		print(" (A)ired in the year: " + animeFilter["airedIn"])
-		print(" (T)ype of series: " + ", ".join(seriesTypeNumberToString(x) for x in animeFilter["seriesTypes"]))
-		print("Type the first letter of a filter field followed by the values to use for it to edit the filter separated by commas (e.g. \"U watching, plan to watch, dropped\", \"S 4,9\", \"T tv,ova\"), or enter \"done\" to confirm the filter.")
-		printBreak()
+		if view:
+			print("Current filter status for the " + word + ":")
+			print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["userStatuses"]))
+			print(" (N)ame contains: \"" + animeFilter["name"] + "\"")
+			print(" (S)core range: " + str(animeFilter["scoreMin"]) + " to " + str(animeFilter["scoreMax"]))
+			print(" (A)ired in the year: " + animeFilter["airedIn"])
+			print(" (T)ype of series: " + ", ".join(seriesTypeNumberToString(x) for x in animeFilter["seriesTypes"]))
+			print("Operations:")
+			print(" <bracketed letter> <values>  Sets the values of the field of the filter, multiple values must be comma-separated.")
+			print(" \"view\"                   View this dialogue again.")
+			print(" \"help\"                   Show examples of how to enter filter fields.")
+			print(" \"done\"                   Confirm the filter's settings.")
+			print(" \"cancel\"                 Return to the main command menu.")
+			printBreak()
+			view = False
+		elif help:
+			print("Example commands:")
+			print(" \"U watching, dropped\"    Only show anime on your watching and dropped lists.")
+			print(" \"N jo\"                   Only show anime whose name(s) contain the fragment \"jo\" (ignores case).")
+			print(" \"S 8,10\"                 Only show anime you have rated with a score from 8 to 10 (inclusive).")
+			print(" \"A 2017\"                 Only show anime that aired during 2017.")
+			print(" \"T TV, OVA\"              Only show TV and OVA anime.")
+			help = False
 
 		# Input
 		filterCommand = input("> ").strip()
 
 		# Filter alteration
-		if filterCommand.startswith("done"):
-			filterDone = True
+		if filterCommand.lower().startswith("done"):
+			done = True
+		elif filterCommand.lower().startswith("view"):
+			view = True
+			printBreak()
+		elif filterCommand.lower().startswith("help"):
+			help = True
+		elif filterCommand.lower().startswith("cancel"):
+			return None
 		else:
 			splitCommand = [filterCommand[0].lower(), filterCommand[2:]]
 			if splitCommand[0] == "u":
@@ -161,9 +196,12 @@ def getFilter(word):
 				else:
 					print("Invalid range for (S)core range.")
 			elif splitCommand[0] == "a":
-				if (len(splitCommand[1]) == 4) and (splitCommand.isdigit()):
-					animeFilter["airedIn"] = int(splitCommand[1])
+				if (len(splitCommand[1]) == 4) and (splitCommand[1].isdigit()):
+					animeFilter["airedIn"] = splitCommand[1]
 					print("Air year to filter by set to: " + animeFilter["airedIn"])
+				elif splitCommand[1] == "":
+					animeFilter["airedIn"] = ""
+					print("Air year filtering disabled.")
 				else:
 					print("Invalid year entered for (A)ir year.")
 			elif splitCommand[0] == "t":
@@ -180,7 +218,6 @@ def getFilter(word):
 					print("Invalid series (T)ypes entered.")
 			else:
 				print("Invalid command.")
-		printBreak()
 
 	return animeFilter
 

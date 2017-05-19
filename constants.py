@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-VERSION = "v0.7.1"
+VERSION = "v0.8.0"
 
 OPTIONSPATH = "data/options.txt"
 
@@ -10,6 +10,8 @@ ANIMEUSERSTATUS = OrderedDict([
 	("Watching",1),
 	("CW",1),
 	("Completed",2),
+	("Complete",2),
+	("Finished",2),
 	("On Hold",3),
 	("On hold",3),
 	("Hold",3),

@@ -22,7 +22,9 @@ class Anime:
 
 	userID = ""
 	userWatchedEps = -1
+	userStartDateRaw = ""
 	userStartDate = ""
+	userEndDateRaw = ""
 	userEndDate = ""
 	userScore = -1
 	userStatusNum = -1
@@ -55,8 +57,10 @@ class Anime:
 
 		self.userID = "0"
 		self.userWatchedEps = inUserWatchedEps
-		self.userStartDate = formatDateNicely(inUserStartDate)
-		self.userEndDate = formatDateNicely(inUserEndDate)
+		self.userStartDateRaw = inUserStartDate
+		self.userStartDate = formatDateNicely(inUserStartDate) if inUserStartDate == "0000-00-00" else "?"
+		self.userEndDateRaw = inUserEndDate
+		self.userEndDate = formatDateNicely(inUserEndDate) if inUserEndDate == "0000-00-00" else "?"
 		self.userScore = inUserScore
 		self.userStatusNum = inUserStatusNum
 		self.userStatusStr = userStatusNumberToString(inUserStatusNum)
@@ -162,7 +166,6 @@ class AnimeList:
 						newAnime[key] = currentAnime
 				return newAnime
 		else:
-			print("Invalid category.")
 			return None
 
 	def filterAnime(self, filterData):
@@ -173,13 +176,12 @@ class AnimeList:
 				currentAnime = startAnime[key]
 				catCheck = (currentAnime.userStatusNum in filterData["userStatuses"]) or (0 in filterData["userStatuses"])
 				scoreCheck = (currentAnime.userScore in range(filterData["scoreMin"], filterData["scoreMax"]+1))
-				dateCheck = (filterData["airedIn"] == "") or (int(filterData["airedIn"]) in range(int(currentAnime.seriesStartDate.split(" ")[2]), int(currentAnime.seriesStartDate.split(" ")[2])))
+				dateCheck = (filterData["airedIn"] == "") or (int(filterData["airedIn"]) in range(int(currentAnime.seriesStartDate.split(" ")[2]), int(currentAnime.seriesStartDate.split(" ")[2])+1))
 				typeCheck = (currentAnime.seriesTypeNum in filterData["seriesTypes"]) or (0 in filterData["seriesTypes"])
 				if catCheck and scoreCheck and dateCheck and typeCheck:
 					returnAnime[key] = currentAnime
 			return returnAnime
 		else:
-			print("Invalid filter data.")
 			return None
 
 	def getAnimeCount():
@@ -236,8 +238,6 @@ class CompositeAnime:
 		for i in self.composedAnime:
 			total += self.composedAnime[i].userScore
 		return total / len(self.composedAnime)
-
-	
 
 
 class User:
