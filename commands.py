@@ -18,7 +18,7 @@ def printCommands(inUser):
 
 # Command methods.
 def newUser(user, anime, options):
-	outData = getUser()
+	outData = getUser("retrieve", True)
 	if (outData[0] is not None):
 		user.merge(outData[0])
 		anime.merge(outData[1])
@@ -274,6 +274,19 @@ def optioniser(user, anime, options):
 	else:
 		print("Invalid input.")
 
+def comparator(user, anime, options):
+	outData = getUser("compare", True)
+	if (outData[0] is not None):
+		user2 = outData[0]
+		anime2 = outData[1]
+	# TODO: Compare stuff.
+
+
+def statifier(user, anime, options):
+	# TODO: Stat stuff.	
+	print("Number of anime on list: " + )
+
+
 def quitter(user, anime, options):
 	pass
 
@@ -283,10 +296,12 @@ def tester(user, anime, options):
 actionNew = newUser
 actionUser = printUser
 actionClear = clearUser
+actionCompare = comparator
 actionFilter = showList
 actionDisplay = detail
 actionRoulette = roulette
 actionTournament = tourney
+actionStats = statifier
 actionGantt = gantt
 actionOptions = optioniser
 actionTest = tester
@@ -297,12 +312,12 @@ COMMANDLIST = [
 	#("cache", "Load in a locally cached user to use the program with.", None, False),
 	("clear", "Removes the currently stored user.", actionClear, True),
 	("user", "Shows details about a user.", actionUser, True),
-	#("compare", "Find out how similar or different you are from another user.", actionCompare, True),
+	("compare", "Find out how similar or different you are from another user.", actionCompare, True),
 	("filter", "Lists all anime that match your filter.", actionFilter, True),
 	("display", "Displays in depth details about the selected anime.", actionDisplay, True),
 	("roulette", "Selects a random anime from your list.", actionRoulette, True),
 	("tournament", "Orders anime based on your preferences to determine your favourite shows.", actionTournament, True),
-	#("stats", "Generate various statistics about your anime watching habits.", None, True),
+	("stats", "Generate various statistics about your anime watching habits.", actionStats, True),
 	("gantt", "Create a Gantt chart showing when you've been watching anime.", actionGantt, True),
 	("options", "Toggle or change various setting of this app.", actionOptions, False),
 	#("test", "Developer command for testing code.", actionTest, True),

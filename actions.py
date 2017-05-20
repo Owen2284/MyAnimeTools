@@ -16,8 +16,8 @@ def printBreak():
 def getCommand():
 	return input("Enter a command:- ").lower().split()
 
-def getUser():
-	username = input("Enter the name of the user to retrieve: ").lower()
+def getUser(word, verbose):
+	username = input("Enter the name of the user to " + word + ": ").lower()
 	print("Contacting MAL...")
 	data = initUser(username)
 	if (data[0] is None) or (data[1] is None):
@@ -28,9 +28,10 @@ def getUser():
 		else:
 			print("Error: Unknown error.")
 	else:
-		print("User " + data[0].userName + " loaded in.")
-		printBreak()
-		data[0].printUser()
+		if verbose:
+			print("User " + data[0].userName + " loaded in.")
+			printBreak()
+			data[0].printUser()
 	return data
 
 def initUser(inUser):

@@ -196,6 +196,11 @@ class AnimeList:
 	def clear(self):
 		self.anime = {}
 
+	def getStats():
+		return {
+			"total": len(self.anime)
+		}
+
 
 class CompositeAnime:
 
@@ -303,6 +308,16 @@ class User:
 		self.countPlanToWatch = 0
 		self.countAll = 0
 		self.daysSpentWatching = 0.0
+
+	def getStats():
+		return {
+			"total": self.countAll
+			"watching": self.countWatching
+			"completed": self.countCompleted
+			"onHold": self.countOnHold
+			"dropped": self.countDropped
+			"planToWatch": self.countPlanToWatch
+		}
 
 
 class TournamentRound:
