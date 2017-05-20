@@ -281,12 +281,10 @@ def comparator(user, anime, options):
 		anime2 = outData[1]
 	# TODO: Compare stuff.
 
-
 def statifier(user, anime, options):
 	userstats = user.getStats()
 	animestats = anime.getStats()
 	print("Number of anime on list: " + userstats["total"])
-
 
 def quitter(user, anime, options):
 	pass
