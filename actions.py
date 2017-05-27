@@ -2,6 +2,7 @@
 import requests
 import xml.etree.ElementTree as ET
 
+from constants import blankFilter
 from formatting import userStatusNumberToString, userStatusStringToNumber, seriesTypeNumberToString, seriesTypeStringToNumber
 from objects import Anime, AnimeList, User
 from constants import VERSION, ANIMEUSERSTATUS
@@ -114,17 +115,6 @@ def getCategory(word):
 	else:
 		return None
 
-def blankFilter():
-	newDict = {
-		"userStatuses" : [1,2,3,4,6],		# User's category for the anime.
-		"name" : "",						# Series part name search
-		"scoreMax" : 10,
-		"scoreMin" : 0,						# Range of scores to include
-		"airedIn": "",						# Shows airing in year specified. (Blank to ignore)
-		"seriesTypes": [1,2,3,4,5,6]		# Series types, such as TV, OVA, etc.
-	}
-	return newDict
-
 def getFilter(word):
 	animeFilter = blankFilter()
 	done = False
@@ -135,7 +125,10 @@ def getFilter(word):
 
 		# Display
 		if view:
-			print("Current filter status for the " + word + ":")
+			if word != "":
+				print("Current filter status for the " + word + ":")
+			else:
+				print("Current filter status:")
 			print(" (U)ser statuses: " + ", ".join(userStatusNumberToString(x) for x in animeFilter["userStatuses"]))
 			print(" (N)ame contains: \"" + animeFilter["name"] + "\"")
 			print(" (S)core range: " + str(animeFilter["scoreMin"]) + " to " + str(animeFilter["scoreMax"]))

@@ -1,6 +1,7 @@
 import random
 import copy
 
+from constants import blankFilter
 from formatting import *
 
 class Anime:
@@ -58,9 +59,9 @@ class Anime:
 		self.userID = "0"
 		self.userWatchedEps = inUserWatchedEps
 		self.userStartDateRaw = inUserStartDate
-		self.userStartDate = formatDateNicely(inUserStartDate) if inUserStartDate == "0000-00-00" else "?"
+		self.userStartDate = formatDateNicely(inUserStartDate) if inUserStartDate != "0000-00-00" else "?"
 		self.userEndDateRaw = inUserEndDate
-		self.userEndDate = formatDateNicely(inUserEndDate) if inUserEndDate == "0000-00-00" else "?"
+		self.userEndDate = formatDateNicely(inUserEndDate) if inUserEndDate != "0000-00-00" else "?"
 		self.userScore = inUserScore
 		self.userStatusNum = inUserStatusNum
 		self.userStatusStr = userStatusNumberToString(inUserStatusNum)
@@ -112,6 +113,9 @@ class Anime:
 		print(" Times Rewatched: " + str(self.userRewatching))
 		print(" Rewatched to episode: " + str(self.userRewatchingEp))
 		print(" User Tags: " + self.userTags)
+
+	def isSameAnime(self, other):
+		return (self.name == other.name and self.aID == other.aID)
 
 
 class AnimeList:
@@ -184,10 +188,18 @@ class AnimeList:
 		else:
 			return None
 
-	def getAnimeCount():
+	def getSharedAnime(self, other):
+		keys = []
+		for key1 in self.anime:
+			for key2 in other.anime:
+				if key1 == key2 and key1 not in keys:
+					keys.append(key1)
+		return keys
+
+	def getAnimeCount(self):
 		return len(anime)
 
-	def isEmpty():
+	def isEmpty(self):
 		return getAnimeCount() == 0;
 
 	def merge(self, target):
@@ -196,12 +208,71 @@ class AnimeList:
 	def clear(self):
 		self.anime = {}
 
-	def getStats():
-		return {
-			"total": len(self.anime)
+	def getStats(self):
+		# Average calculations.
+		totalScores = [0,0]
+		counts = [0,0]
+		for key in self.anime:
+			currentAnime = self.anime[key]
+			if currentAnime.userScore > 0:
+				totalScores[1] += currentAnime.userScore
+				counts[1] += 1
+			totalScores[0] += currentAnime.userScore
+			counts[0] += 1
+		# Score grouping.
+		scoreDict = {}
+		for i in range(0,11):
+			filty = blankFilter()
+			filty["scoreMax"] = i
+			filty["scoreMin"] = i
+			filty["seriesTypes"] = [0]
+			resultsy = self.filterAnime(filty)
+			scoreDict[str(i)] = len(resultsy)
+			scoreDict[str(i) + "%"] = round((len(resultsy)/len(self.anime))*100, 1)
+		# Type grouping.
+		typeDict = {}
+		for i in range(1,7):
+			filty = blankFilter()
+			filty["seriesTypes"] = [i]
+			keyy = seriesTypeNumberToString(i)
+			resultsy = self.filterAnime(filty)
+			typeDict[keyy] = len(resultsy)
+			typeDict[keyy + "%"] = round((len(resultsy)/len(self.anime))*100,1)
+		# Length grouping.
+		lengthDict = {}
+		lengthBins = [(1,1), (2,6), (7,13), (14,26), (27,52), (53,100), (101,-1)]
+		lengthTotals = [0,0,0,0,0,0,0,0]	# Final slot for unknown lengths.
+		for key in self.anime:
+			currentAnime = self.anime[key]
+			numEpisodes = currentAnime.seriesEpisodes
+			if numEpisodes <= 0:
+				lengthTotals[7] += 1
+			else:
+				for binNum in range(0,len(lengthBins)):
+					bin = lengthBins[binNum]
+					if bin[1] >= 0:
+						if numEpisodes in range(bin[0],bin[1]+1):
+							lengthTotals[binNum] += 1
+					else:
+						lengthTotals[binNum] += 1
+		for i in range(0,len(lengthBins)):
+			bin = lengthBins[i]
+			lengthDict[str(bin[0]) + "," + str(bin[1])] = lengthTotals[i]
+			lengthDict[str(bin[0]) + "," + str(bin[1]) + "%"] = round((lengthTotals[i]/len(self.anime)) * 100,1)
+		lengthDict["?"] = lengthTotals[7]
+		lengthDict["?%"] = round((lengthTotals[7]/len(self.anime))*100,1)
+		# Finalisation.
+		stats = {
+			"total": len(self.anime),
+			"avgScoreAll": round(totalScores[0]/counts[0],1),
+			"avgScoreRated": round(totalScores[1]/counts[1],1),
+			"scoreDict": scoreDict,
+			"seriesTypeDict": typeDict,
+			"lengthDict": lengthDict
 		}
+		return stats
 
-
+# Unused
 class CompositeAnime:
 
 	name = ""
@@ -309,14 +380,20 @@ class User:
 		self.countAll = 0
 		self.daysSpentWatching = 0.0
 
-	def getStats():
+	def getStats(self):
 		return {
-			"total": self.countAll
-			"watching": self.countWatching
-			"completed": self.countCompleted
-			"onHold": self.countOnHold
-			"dropped": self.countDropped
-			"planToWatch": self.countPlanToWatch
+			"total": self.countAll,
+			"watching": self.countWatching,
+			"completed": self.countCompleted,
+			"onHold": self.countOnHold,
+			"dropped": self.countDropped,
+			"planToWatch": self.countPlanToWatch,
+			"percentWatching": round(self.countWatching/self.countAll * 100, 1),
+			"percentCompleted": round(self.countCompleted/self.countAll * 100, 1),
+			"percentOnHold": round(self.countOnHold/self.countAll * 100, 1),
+			"percentDropped": round(self.countDropped/self.countAll * 100, 1),
+			"percentPlanToWatch": round(self.countPlanToWatch/self.countAll * 100, 1),
+			"days": self.daysSpentWatching
 		}
 
 

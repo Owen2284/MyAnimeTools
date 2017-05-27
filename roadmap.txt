@@ -7,9 +7,7 @@ Implement gantt command.
 
 v1.0.0
 ------
-
-
-TODO
-----
 Implemented stats command.
 Implemented compare command.
+Removed user command.
+Fixed date bug introduced in last version.
